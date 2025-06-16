@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Train Your Dragon - Movies & Series</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: url('https://images2.alphacoders.com/112/thumb-1920-1121272.jpg') no-repeat center center fixed;
+            background-size: cover;
+            position: relative;
+        }
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.65);
+            z-index: -1;
+        }
+        .movie-card, .series-card {
+            transition: all 0.3s ease;
+            transform-style: preserve-3d;
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(5px);
+        }
+        .movie-card:hover, .series-card:hover {
+            transform: translateY(-10px) scale(1.03);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+        .movie-poster, .series-poster {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+        }
+        .selected {
+            border: 4px solid #3b82f6;
+            transform: scale(1.05);
+        }
+        .dragon-icon {
+            animation: float 3s ease-in-out infinite;
+        }
+        .series-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .tab-button {
+            transition: all 0.3s ease;
+        }
+        .tab-button.active {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .coming-soon {
+            position: relative;
+        }
+        .coming-soon::after {
+            content: "Coming Soon";
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #ef4444;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .countdown-timer {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .countdown-box {
+            background: #3b82f6;
+            color: white;
+            padding: 8px;
+            border-radius: 5px;
+            min-width: 50px;
+            text-align: center;
+        }
+        .countdown-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .countdown-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+        }
+        .watch-now-btn, .trailer-btn {
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        .movie-card:hover .watch-now-btn, 
+        .series-card:hover .watch-now-btn,
+        .movie-card:hover .trailer-btn,
+        .series-card:hover .trailer-btn {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .watch-now-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .movie-poster:hover .watch-now-overlay,
+        .series-poster:hover .watch-now-overlay {
+            opacity: 1;
+        }
+        .logo-container {
+            filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.3));
+        }
+        .player-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .player-container.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .player-wrapper {
+            width: 90%;
+            max-width: 1200px;
+            height: 80%;
+            position: relative;
+        }
+        .close-player {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        .close-player:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: rotate(90deg);
+        }
+        .player-title {
+            color: white;
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .player-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 8px;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .trailer-btn {
+            background-color: #f59e0b;
+            color: white;
+        }
+        .trailer-btn:hover {
+            background-color: #d97706;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="container mx-auto px-4 py-12">
+        <!-- Header with Logo -->
+        <header class="text-center mb-12">
+            <div class="logo-container flex justify-center mb-4">
+                <img src="https://www.dreamworks.com/storage/movies/how-to-train-your-dragon/how-to-train-your-dragon-logo.png" 
+                     alt="How to Train Your Dragon Logo" 
+                     class="h-24 md:h-60">
+            </div>
+            <p class="text-lg text-white max-w-2xl mx-auto font-medium">
+                Todas las películas de Cómo Entrenar a Tu Dragón en un solo lugar. Redescubre la magia, la amistad y la aventura.
+            </p>
+        </header>
+
+        <!-- Tabs -->
+        <div class="flex justify-center mb-8">
+            <div class="inline-flex rounded-full p-1 bg-gray-200">
+                <button id="moviesTab" class="tab-button px-4 py-2 rounded-full font-medium active" onclick="showTab('movies')">
+                    Películas
+                </button>
+                <button id="seriesTab" class="tab-button px-4 py-2 rounded-full font-medium" onclick="showTab('series')">
+                    Series de TV
+                </button>
+            </div>
+        </div>
+
+        <!-- Movies Section -->
+        <div id="moviesSection" class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <!-- Movie 1 -->
+            <div class="movie-card bg-white rounded-xl overflow-hidden cursor-pointer relative">
+                <div class="movie-poster relative" onclick="selectContent(1, 'movie')">
+                    <img src="https://m.media-amazon.com/images/M/MV5BMjA5NDQyMjc2NF5BMl5BanBnXkFtZTcwMjg5ODcyMw@@._V1_.jpg" 
+                         alt="Cómo Entrenar a Tu Dragón 1" 
+                         class="w-full h-64 md:h-80 object-cover">
+                    <div class="watch-now-overlay">
+                        <div class="flex flex-col items-center gap-4">
+                            <button class="watch-now-btn bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full transition duration-300 flex items-center" onclick="playContent(1, 'movie', event)">
+                                <i class="fas fa-play mr-2"></i> Ver Ahora
+                            </button>
+                            <button class="trailer-btn text-white font-bold py-3 px-6 rounded-full transition duration-300 flex items-center" onclick="playTrailer(1, 'movie', event)">
+                                <i class="fas fa-film mr-2"></i> Tráiler
+                            </button>
+                        </div>
+                    </div>
+                    <div class="absolute top-2 right-2 bg-yellow-400 text-black px-2 py-1 rounded-full text-xs font-bold">
+                        <i class="fas fa-star mr-1"></i> 8.1/10
+                    </div>
+                </div>
+                <div class="p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Cómo Entrenar a Tu Dragón</h3>
+                    <p class="text-gray-600 text-sm mb-4">2010 | PG | 1h 38m</p>
+                    <p class="text-gray-700 mb-4">
+                        Un joven vikingo torpe que aspira a cazar dragones se convierte en el improbable amigo de un joven dragón, y aprende que puede haber más de lo que creía sobre estas criaturas.
+                    </p>
+                    <div class="flex justify-between items-center">
+                        <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">Aventura</span>
+                        <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">Familia</span>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-300 flex items-center justify-center watch-now-btn" onclick="playContent(1, 'movie', event)">
+                            <i class="fas fa-play mr-2"></i> Ver Ahora
+                        </button>
+                        <button class="mt-4 w-full trailer-btn text-white font-bold py-2 px-4 rounded transition duration-300 flex items-center justify-center" onclick="playTrailer(1, 'movie', event)">
+                            <i class="fas fa-film mr-2"></i> Tráiler
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Movie 2 -->
+            <div class="movie-card bg-white rounded-xl overflow-hidden cursor-pointer relative">
+                <div class="movie-poster relative" onclick="selectContent(2, 'movie')">
+                    <img src="https://m.media-amazon.com/images/M/MV5BMzMwMTAwODczN15BMl5BanBnXkFtZTgwMDk2NDA4MTE@._V1_.jpg" 
+                         alt="Cómo Entrenar a Tu Dragón 2" 
+                         class="w-full h-64 md:h-80 object-cover">
+                    <div class="watch-now-overlay">
+                        <div class="flex flex-col items-center gap-4">
+                            <button class="watch-now-btn bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full transition duration-300 flex items-center" onclick="playContent(2, 'movie', event)">
+                                <i class="fas fa-play mr-2"></i> Ver Ahora
+                            </button>
+                            <button class="trailer-btn text-white font-bold py-3 px-6 rounded-full transition duration-300 flex items-center" onclick="playTrailer(2, 'movie', event)">
+                                <i class="fas fa-film mr-2"></i> Tráiler
+                            </button>
+                        </div>
+                    </div>
+                    <div class="absolute top-2 right-2 bg-yellow-400 text-black px-2 py-1 rounded-full text-xs font-bold">
+                        <i class="fas fa-star mr-1"></i> 7.8/10
+                    </div>
+                </div>
+                <div class="p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Cómo Entrenar a Tu Dragón 2</h3>
+                    <p class="text-gray-600 text-sm mb-4">2014 | PG | 1h 42m</p>
+                    <p class="text-gray-700 mb-4">
+                        Cuando Hipo y Desdentao descubren una cueva de hielo que alberga a cientos de dragones salvajes y al misterioso Jinete de Dragones, los dos amigos se encuentran en el centro de una batalla para proteger la paz.
+                    </p>
+                    <div class="flex justify-between items-center">
+                        <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">Aventura</span>
+                        <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">Familia</span>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-300 flex items-center justify-center watch-now-btn" onclick="playContent(2, 'movie', event)">
+                            <i class="fas fa-play mr-2"></i> Ver Ahora
+                        </button>
+                        <button class="mt-4 w-full trailer-btn text-white font-bold py-2 px-4 rounded transition duration-300 flex items-center justify-center" onclick="playTrailer(2, 'movie', event)">
+                            <i class="fas fa-film mr-2"></i> Tráiler
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Movie 3 -->
+            <div class="movie-card bg-white rounded-xl overflow-hidden cursor-pointer relative">
+                <div class="movie-poster relative" onclick="selectContent(3, 'movie')">
+                    <img src="https://m.media-amazon.com/images/M/MV5BMjIwMDIwNjAyOF5BMl5BanBnXkFtZTgwNDE1MDc2NTM@._V1_.jpg" 
+                         alt="Cómo Entrenar a Tu Dragón 3" 
+                         class="w-full h-64 md:h-80 object-cover">
+                    <div class="watch-now-overlay">
+                        <div class="flex flex-col items-center gap-4">
+                            <button class="watch-now-btn bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full transition duration-300 flex items-center" onclick="playContent(3, 'movie', event)">
+                                <i class="fas fa-play mr-2"></i> Ver Ahora
+                            </button>
+                            <button class="trailer-btn text-white font-bold py-3 px-6 rounded-full transition duration-300 flex items-center" onclick="playTrailer(3, 'movie', event)">
+                                <i class="fas fa-film mr-2"></i> Tráiler
+                            </button>
+                        </div>
+                    </div>
+                    <div class="absolute top-2 right-2 bg-yellow-400 text-black px-2 py-1 rounded-full text-xs font-bold">
+                        <i class="fas fa-star mr-1"></i> 7.4/10
+                    </div>
+                </div>
+                <div class="p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Cómo Entrenar a Tu Dragón 3</h3>
+                    <p class="text-gray-600 text-sm mb-4">2019 | PG | 1h 44m</p>
+                    <p class="text-gray-700 mb-4">
+                        Cuando surge una nueva amenaza, Hipo y Desdentao deben abandonar su hogar y viajar a un mundo oculto que se creía solo existía en el mito para salvar todo lo que han luchado por proteger.
+                    </p>
+                    <div class="flex justify-between items-center">
+                        <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">Aventura</span>
+                        <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">Familia</span>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-300 flex items-center justify-center watch-now-btn" onclick="playContent(3, 'movie', event)">
+                            <i class="fas fa-play mr-2"></i> Ver Ahora
+                        </button>
+                        <button class="mt-4 w-full trailer-btn text-white font-bold py-2 px-4 rounded transition duration-300 flex items-center justify-center" onclick="playTrailer(3, 'movie', event)">
+                            <i class="fas fa-film mr-2"></i> Tráiler
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Action Movie -->
+            <div class="movie-card bg-white rounded-xl overflow-hidden cursor-pointer relative">
+                <div class="movie-poster relative" onclick="selectContent(4, 'movie')">
+                    <img src="https://m.media-amazon.com/images/M/MV5BODA5Y2M0NjctNWQzMy00ODRhLWE0MzUtYmE1YTAzZjYyYmQyXkEyXkFqcGc@._V1_.jpg" 
+                         alt="Cómo Entrenar a Tu Dragón Live Action" 
+                         class="w-full h-64 md:h-80 object-cover">
+                    <div class="watch-now-overlay">
+                        <div class="flex flex-col items-center gap-4">
+                            <button class="watch-now-btn bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full transition duration-300 flex items-center" onclick="playContent(4, 'movie', event)">
+                                <i class="fas fa-play mr-2"></i> Ver Ahora
+                            </button>
+                            <button class="trailer-btn text-white font-bold py-3 px-6 rounded-full transition duration-300 flex items-center" onclick="playTrailer(4, 'movie', event)">
+                                <i class="fas fa-film mr-2"></i> Tráiler
+                            </button>
+                        </div>
+                    </div>
+                    <div class="absolute top-2 right-2 bg-yellow-400 text-black px-2 py-1 rounded-full text-xs font-bold">
+                        <i class="fas fa-star mr-1"></i> <span id="liveActionRating">8.1/10</span>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Cómo Entrenar a Tu Dragón (Live Action)</h3>
+                    <p class="text-gray-600 text-sm mb-4">2025 | PG | TBA</p>
+                    <p class="text-gray-700 mb-4">
+                        El querido clásico animado cobra vida en esta adaptación live-action que presenta impresionantes efectos visuales y nuevas interpretaciones de los personajes. Experimenta la magia de Berk y sus dragones como nunca antes.
+                    </p>
+                    <div class="flex justify-between items-center">
+                        <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">Aventura</span>
+                        <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">Familia</span>
+                        <span class="bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded">Live Action</span>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-300 flex items-center justify-center watch-now-btn" onclick="playContent(4, 'movie', event)">
+                            <i class="fas fa-play mr-2"></i> Ver Ahora
+                        </button>
+                        <button class="mt-4 w-full trailer-btn text-white font-bold py-2 px-4 rounded transition duration-300 flex items-center justify-center" onclick="playTrailer(4, 'movie', event)">
+                            <i class="fas fa-film mr-2"></i> Tráiler
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Series Section -->
+        <div id="seriesSection" class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto hidden">
+            <!-- Series 1 -->
+            <div class="series-card bg-white rounded-xl overflow-hidden cursor-pointer relative">
+                <div class="series-poster relative" onclick="selectContent(1, 'series')">
+                    <img src="https://pics.filmaffinity.com/Dragons_Defenders_of_Berk_TV_Series-305582224-large.jpg" 
+                         alt="Dragones: Defensores de Berk" 
+                         class="w-full h-64 md:h-80 object-cover">
+                    <div class="series-badge">Serie de TV</div>
+                    <div class="watch-now-overlay">
+                        <div class="flex flex-col items-center gap-4">
+                            <button class="watch-now-btn bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full transition duration-300 flex items-center" onclick="playContent(1, 'series', event)">
+                                <i class="fas fa-play mr-2"></i> Ver Ahora
+                            </button>
+                            <button class="trailer-btn text-white font-bold py-3 px-6 rounded-full transition duration-300 flex items-center" onclick="playTrailer(1, 'series', event)">
+                                <i class="fas fa-film mr-2"></i> Tráiler
+                            </button>
+                        </div>
+                    </div>
+                    <div class="absolute top-2 right-2 bg-yellow-400 text-black px-2 py-1 rounded-full text-xs font-bold">
+                        <i class="fas fa-star mr-1"></i> 7.9/10
+                    </div>
+                </div>
+                <div class="p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Dragones: Defensores de Berk</h3>
+                    <p class="text-gray-600 text-sm mb-4">2013-2014 | TV-Y7 | 2 Temporadas</p>
+                    <p class="text-gray-700 mb-4">
+                        Hipo y Desdentao continúan sus aventuras mientras protegen Berk de nuevas amenazas, navegando por los desafíos del entrenamiento de dragones.
+                    </p>
+                    <div class="flex justify-between items-center">
+                        <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">Aventura</span>
+                        <span class="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded">Animación</span>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-300 flex items-center justify-center watch-now-btn" onclick="playContent(1, 'series', event)">
+                            <i class="fas fa-play mr-2"></i> Ver Ahora
+                        </button>
+                        <button class="mt-4 w-full trailer-btn text-white font-bold py-2 px-4 rounded transition duration-300 flex items-center justify-center" onclick="playTrailer(1, 'series', event)">
+                            <i class="fas fa-film mr-2"></i> Tráiler
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Series 2 -->
+            <div class="series-card bg-white rounded-xl overflow-hidden cursor-pointer relative">
+                <div class="series-poster relative" onclick="selectContent(2, 'series')">
+                    <img src="https://m.media-amazon.com/images/M/MV5BZTVkNzUyMGYtNjAyMy00YTlmLWE1YjUtYzhlMjZiNjYwOTVhXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg" 
+                         alt="Dragones: Carrera al Borde" 
+                         class="w-full h-64 md:h-80 object-cover">
+                    <div class="series-badge">Serie de TV</div>
+                    <div class="watch-now-overlay">
+                        <div class="flex flex-col items-center gap-4">
+                            <button class="watch-now-btn bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full transition duration-300 flex items-center" onclick="playContent(2, 'series', event)">
+                                <i class="fas fa-play mr-2"></i> Ver Ahora
+                            </button>
+                            <button class="trailer-btn text-white font-bold py-3 px-6 rounded-full transition duration-300 flex items-center" onclick="playTrailer(2, 'series', event)">
+                                <i class="fas fa-film mr-2"></i> Tráiler
+                            </button>
+                        </div>
+                    </div>
+                    <div class="absolute top-2 right-2 bg-yellow-400 text-black px-2 py-1 rounded-full text-xs font-bold">
+                        <i class="fas fa-star mr-1"></i> 8.3/10
+                    </div>
+                </div>
+                <div class="p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Dragones: Carrera al Borde</h3>
+                    <p class="text-gray-600 text-sm mb-4">2015-2018 | TV-Y7 | 6 Temporadas</p>
+                    <p class="text-gray-700 mb-4">
+                        Hipo y su dragón Desdentao lideran a los Jinetes de Dragones mientras vuelan más allá de las fronteras de Berk y descubren nuevos mundos.
+                    </p>
+                    <div class="flex justify-between items-center">
+                        <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">Aventura</span>
+                        <span class="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded">Animación</span>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-300 flex items-center justify-center watch-now-btn" onclick="playContent(2, 'series', event)">
+                            <i class="fas fa-play mr-2"></i> Ver Ahora
+                        </button>
+                        <button class="mt-4 w-full trailer-btn text-white font-bold py-2 px-4 rounded transition duration-300 flex items-center justify-center" onclick="playTrailer(2, 'series', event)">
+                            <i class="fas fa-film mr-2"></i> Tráiler
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Selected Content Info -->
+        <div id="selectedContent" class="mt-12 max-w-4xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden hidden">
+            <div class="md:flex">
+                <div class="md:w-1/3">
+                    <img id="selectedPoster" src="" alt="Contenido Seleccionado" class="w-full h-full object-cover">
+                </div>
+                <div class="p-8 md:w-2/3">
+                    <div class="flex items-center mb-2">
+                        <h2 id="selectedTitle" class="text-3xl font-bold text-gray-800"></h2>
+                        <span id="seriesBadge" class="ml-3 bg-purple-600 text-white px-2 py-1 rounded-full text-xs font-bold hidden">Serie de TV</span>
+                    </div>
+                    <div class="flex items-center mb-4">
+                        <span id="selectedRating" class="bg-yellow-400 text-black px-2 py-1 rounded-full text-sm font-bold mr-4"></span>
+                        <span id="selectedYear" class="text-gray-600 mr-4"></span>
+                        <span id="selectedRuntime" class="text-gray-600"></span>
+                    </div>
+                    <p id="selectedPlot" class="text-gray-700 mb-6"></p>
+                    <div class="flex flex-wrap gap-2 mb-6" id="selectedGenres">
+                        <!-- Los géneros se insertarán aquí -->
+                    </div>
+                    <div class="action-buttons">
+                        <button id="selectedWatchButton" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full transition duration-300 flex items-center" onclick="playSelectedContent()">
+                            <i class="fas fa-play mr-2"></i> Ver Ahora
+                        </button>
+                        <button id="selectedTrailerButton" class="trailer-btn text-white font-bold py-3 px-6 rounded-full transition duration-300 flex items-center" onclick="playSelectedTrailer()">
+                            <i class="fas fa-film mr-2"></i> Tráiler
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-16 text-center text-gray-600 text-sm">
+            <p>© 2023 DreamWorks Animation. Todos los derechos reservados.</p>
+            <p class="mt-2">Imagen de fondo: arte conceptual de "Cómo Entrenar a Tu Dragón"</p>
+        </footer>
+    </div>
+
+    <!-- Video Player Container -->
+    <div id="playerContainer" class="player-container">
+        <button class="close-player" onclick="closePlayer()">
+            <i class="fas fa-times"></i>
+        </button>
+        <h2 id="playerTitle" class="player-title"></h2>
+        <div class="player-wrapper">
+            <iframe id="playerFrame" class="player-iframe" allowfullscreen></iframe>
+        </div>
+    </div>
+
+    <script>
+        // Datos del contenido con enlaces para ver y tráileres
+        const content = {
+            movie: {
+                1: {
+                    title: "How to Train Your Dragon",
+                    year: "2010",
+                    runtime: "1h 38m",
+                    rating: "8.1/10 IMDb",
+                    plot: "A hapless young Viking who aspires to hunt dragons becomes the unlikely friend of a young dragon himself, and learns there may be more to the creatures than he assumed.",
+                    poster: "https://m.media-amazon.com/images/M/MV5BMjA5NDQyMjc2NF5BMl5BanBnXkFtZTcwMjg5ODcyMw@@._V1_.jpg",
+                    genres: ["Adventure", "Animation", "Family", "Fantasy"],
+                    watchLink: "https://drive.google.com/file/d/1M2JZAama79EnBl62ydLAGHwsALEoUHz2/preview",
+                    trailerLink: "https://www.youtube.com/embed/oKiYuIsPxYk"
+                },
+                2: {
+                    title: "How to Train Your Dragon 2",
+                    year: "2014",
+                    runtime: "1h 42m",
+                    rating: "7.8/10 IMDb",
+                    plot: "When Hiccup and Toothless discover an ice cave that is home to hundreds of wild dragons and the mysterious Dragon Rider, the two friends find themselves at the center of a battle to protect the peace.",
+                    poster: "https://m.media-amazon.com/images/M/MV5BMzMwMTAwODczN15BMl5BanBnXkFtZTgwMDk2NDA4MTE@._V1_.jpg",
+                    genres: ["Adventure", "Animation", "Family", "Fantasy"],
+                    watchLink: "https://drive.google.com/file/d/1_b5e-GzusDGWMZttFkPbP-zPXiVY78yr/preview",
+                    trailerLink: "https://www.youtube.com/embed/2BP38770KNo"
+                },
+                3: {
+                    title: "How to Train Your Dragon: The Hidden World",
+                    year: "2019",
+                    runtime: "1h 44m",
+                    rating: "7.4/10 IMDb",
+                    plot: "When a new threat emerges, Hiccup and Toothless must leave their home and journey to a hidden world thought only to exist in myth to save everything they've fought to protect.",
+                    poster: "https://m.media-amazon.com/images/M/MV5BMjIwMDIwNjAyOF5BMl5BanBnXkFtZTgwNDE1MDc2NTM@._V1_.jpg",
+                    genres: ["Adventure", "Animation", "Family", "Fantasy"],
+                    watchLink: "https://drive.google.com/file/d/18o3cN0SMv_lYfHcHPs4AdAs_Oq3vTYed/preview",
+                    trailerLink: "https://www.youtube.com/embed/SkcucKDrbOI"
+                },
+                4: {
+                    title: "How to Train Your Dragon (Live Action)",
+                    year: "2025",
+                    runtime: "2h 5m",
+                    rating: "8.1 IMDb", // Cambiado para reflejar el formato de las otras películas
+                    plot: "The beloved animated classic comes to life in this live-action adaptation featuring stunning visuals and new interpretations of the characters. Experience the magic of Berk and its dragons like never before.",
+                    poster: "https://m.media-amazon.com/images/M/MV5BODA5Y2M0NjctNWQzMy00ODRhLWE0MzUtYmE1YTAzZjYyYmQyXkEyXkFqcGc@._V1_.jpg",
+                    genres: ["Adventure", "Fantasy", "Family", "Live Action"],
+                    watchLink: "#", // Enlace de visualización para que lo añadas
+                    trailerLink: "https://www.youtube.com/embed/22w7z_lT6YM"
+                }
+            },
+            series: {
+                1: {
+                    title: "Dragons: Defenders of Berk",
+                    year: "2013-2014",
+                    runtime: "2 Seasons",
+                    rating: "7.9/10 IMDb",
+                    plot: "Hiccup and Toothless continue their adventures as they protect Berk from new threats while navigating the challenges of dragon training. The series follows the events after the first movie and explores deeper relationships between Vikings and dragons.",
+                    poster: "https://pics.filmaffinity.com/Dragons_Defenders_of_Berk_TV_Series-305582224-large.jpg",
+                    genres: ["Adventure", "Animation", "Action", "Comedy"],
+                    watchLink: "https://www.youtube.com/embed/videoseries?list=PLVK5T7qyZQlwqZ2Q3Q8q3Q9Q10Q11Q12",
+                    trailerLink: "https://www.youtube.com/embed/videoseries?list=PLVK5T7qyZQlwqZ2Q3Q8q3Q9Q10Q11Q12"
+                },
+                2: {
+                    title: "Dragons: Race to the Edge",
+                    year: "2015-2018",
+                    runtime: "6 Seasons",
+                    rating: "8.3/10 IMDb",
+                    plot: "Hiccup and his dragon Toothless lead the Dragon Riders as they soar beyond the borders of Berk and discover new worlds. This Netflix original series bridges the gap between the first and second movies, introducing new dragons and expanding the mythology of the franchise.",
+                    poster: "https://m.media-amazon.com/images/M/MV5BZTVkNzUyMGYtNjAyMy00YTlmLWE1YjUtYzhlMjZiNjYwOTVhXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
+                    genres: ["Adventure", "Animation", "Action", "Fantasy"],
+                    watchLink: "https://www.youtube.com/embed/videoseries?list=PLVK5T7qyZQlwqZ2Q3Q8q3Q9Q10Q11Q13",
+                    trailerLink: "https://www.youtube.com/embed/videoseries?list=PLVK5T7qyZQlwqZ2Q3Q8q3Q9Q10Q11Q13"
+                }
+            }
+        };
+
+        // Rastrear el contenido actualmente seleccionado
+        let currentSelectedContent = {
+            id: null,
+            type: null
+        };
+
+        // Función para mostrar la pestaña
+        function showTab(tab) {
+            if (tab === 'movies') {
+                document.getElementById('moviesSection').classList.remove('hidden');
+                document.getElementById('seriesSection').classList.add('hidden');
+                document.getElementById('moviesTab').classList.add('active');
+                document.getElementById('seriesTab').classList.remove('active');
+            } else {
+                document.getElementById('moviesSection').classList.add('hidden');
+                document.getElementById('seriesSection').classList.remove('hidden');
+                document.getElementById('moviesTab').classList.remove('active');
+                document.getElementById('seriesTab').classList.add('active');
+            }
+        }
+
+        // Función para seleccionar contenido
+        function selectContent(contentId, type) {
+            // Eliminar la clase 'selected' de todas las tarjetas
+            document.querySelectorAll('.movie-card, .series-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Añadir la clase 'selected' a la tarjeta clicada
+            event.currentTarget.closest('.movie-card, .series-card').classList.add('selected');
+            
+            // Almacenar el contenido actualmente seleccionado
+            currentSelectedContent.id = contentId;
+            currentSelectedContent.type = type;
+            
+            // Obtener los datos del contenido seleccionado
+            const item = content[type][contentId];
+            
+            // Actualizar la información del contenido seleccionado
+            document.getElementById('selectedTitle').textContent = item.title;
+            document.getElementById('selectedYear').textContent = item.year;
+            document.getElementById('selectedRuntime').textContent = item.runtime;
+            document.getElementById('selectedRating').textContent = item.rating;
+            document.getElementById('selectedPlot').textContent = item.plot;
+            document.getElementById('selectedPoster').src = item.poster;
+            
+            // Mostrar la insignia de serie si es una serie
+            const seriesBadge = document.getElementById('seriesBadge');
+            if (type === 'series') {
+                seriesBadge.classList.remove('hidden');
+            } else {
+                seriesBadge.classList.add('hidden');
+            }
+            
+            // Actualizar géneros
+            const genresContainer = document.getElementById('selectedGenres');
+            genresContainer.innerHTML = '';
+            item.genres.forEach(genre => {
+                const colorClasses = {
+                    'Adventure': 'bg-blue-100 text-blue-800',
+                    'Animation': 'bg-purple-100 text-purple-800',
+                    'Family': 'bg-green-100 text-green-800',
+                    'Fantasy': 'bg-red-100 text-red-800',
+                    'Action': 'bg-orange-100 text-orange-800',
+                    'Comedy': 'bg-yellow-100 text-yellow-800',
+                    'Live Action': 'bg-indigo-100 text-indigo-800'
+                };
+                const span = document.createElement('span');
+                span.className = `${colorClasses[genre] || 'bg-gray-100 text-gray-800'} px-3 py-1 rounded-full text-sm`;
+                span.textContent = genre;
+                genresContainer.appendChild(span);
+            });
+            
+            // Actualizar el botón de ver para el contenido seleccionado
+            const watchButton = document.getElementById('selectedWatchButton');
+            const trailerButton = document.getElementById('selectedTrailerButton');
+            
+            // Para el live action, habilitar los botones de "Ver Ahora" y "Tráiler"
+            watchButton.disabled = false;
+            watchButton.className = 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full transition duration-300 flex items-center';
+            watchButton.innerHTML = '<i class="fas fa-play mr-2"></i> Ver Ahora';
+            
+            trailerButton.disabled = false;
+            trailerButton.className = 'trailer-btn text-white font-bold py-3 px-6 rounded-full transition duration-300 flex items-center';
+            trailerButton.innerHTML = '<i class="fas fa-film mr-2"></i> Tráiler';
+            
+            // Mostrar la sección de contenido seleccionado
+            document.getElementById('selectedContent').classList.remove('hidden');
+            
+            // Desplazarse a la sección de contenido seleccionado
+            document.getElementById('selectedContent').scrollIntoView({
+                behavior: 'smooth'
+            });
+        }
+
+        // Función para reproducir contenido (para tarjetas individuales)
+        function playContent(contentId, type, event) {
+            event.stopPropagation(); // Evitar que se active el evento de clic de la tarjeta
+            const item = content[type][contentId];
+            if (item.watchLink && item.watchLink !== '#') {
+                showPlayer(item.title, item.watchLink);
+            }
+        }
+
+        // Función para reproducir tráiler (para tarjetas individuales)
+        function playTrailer(contentId, type, event) {
+            event.stopPropagation(); // Evitar que se active el evento de clic de la tarjeta
+            const item = content[type][contentId];
+            if (item.trailerLink && item.trailerLink !== '#') {
+                showPlayer(`${item.title} - Tráiler`, item.trailerLink);
+            }
+        }
+
+        // Función para reproducir contenido seleccionado
+        function playSelectedContent() {
+            if (currentSelectedContent.id && currentSelectedContent.type) {
+                const item = content[currentSelectedContent.type][currentSelectedContent.id];
+                if (item.watchLink && item.watchLink !== '#') {
+                    showPlayer(item.title, item.watchLink);
+                }
+            }
+        }
+
+        // Función para reproducir tráiler seleccionado
+        function playSelectedTrailer() {
+            if (currentSelectedContent.id && currentSelectedContent.type) {
+                const item = content[currentSelectedContent.type][currentSelectedContent.id];
+                if (item.trailerLink && item.trailerLink !== '#') {
+                    showPlayer(`${item.title} - Tráiler`, item.trailerLink);
+                }
+            }
+        }
+
+        // Función para mostrar el reproductor
+        function showPlayer(title, url) {
+            document.getElementById('playerTitle').textContent = title;
+            document.getElementById('playerFrame').src = url;
+            document.getElementById('playerContainer').classList.add('active');
+            document.body.style.overflow = 'hidden'; // Evitar el desplazamiento cuando el reproductor está abierto
+        }
+
+        // Función para cerrar el reproductor
+        function closePlayer() {
+            document.getElementById('playerContainer').classList.remove('active');
+            document.getElementById('playerFrame').src = '';
+            document.body.style.overflow = ''; // Volver a habilitar el desplazamiento
+        }
+    </script>
+</body>
+</html>
